@@ -129,52 +129,28 @@ class TorrentCount():
         return torrent_count
 
     @classmethod
-    def torrentz_crawl(cls, title, year):
+    def torrentz_crawl(cls, site, title, year):
         '''
-        Class method to crawl Torrentz website to get number of
-        torrent copies available for given movie title and release year
+        Class method to crawl both the Torrentz website as well as the
+        Torrentz Verified website to get number of torrent copies
+        available for given movie title and release year
 
         Args:
             title (str): Title of movie to search on Torrentz site
             year (str): Year of movie to search on Torrentz site
 
         Returns:
-            str: Number of torrent copies found on Torrentz verified
+            str: Number of torrent copies found on Torrentz
                  site for given title and year
         '''
-        address = 'http://www.torrentz.eu/search?f={0}+{1}'.format(title, year)
-        web_req = requests.get(address)
-        if web_req.status_code != 200:
-            return 'Fail'
+        # Handle both regular site and verified site
+        if site.contains('Ver'):
+            address = 'http://www.torrentz.eu/verified?f={0}+{1}'.format(
+                title, year)
+        else:
+            address = 'http://www.torrentz.eu/search?f={0}+{1}'.format(
+                title, year)
 
-        soup = BeautifulSoup(web_req.text, 'lxml')
-        html_title = soup.h2
-
-        if not html_title:
-            return 'Fail'
-
-        title_strip = re.search(
-            r'(?<=none">)([^ torrents>]+)', str(html_title))
-        torrent_count = title_strip.group(0)
-
-        return torrent_count
-
-    @classmethod
-    def torrentz_ver_crawl(cls, title, year):
-        '''
-        Class method to crawl Torrentz Verified website to get number of
-        torrent copies available for given movie title and release year
-
-        Args:
-            title (str): Title of movie to search on Torrentz verified site
-            year (str): Year of movie to search on Torrentz site
-
-        Returns:
-            str: Number of torrent copies found on Torrentz verified
-                 site for given title and year
-        '''
-        address = 'http://www.torrentz.eu/verified?f={0}+{1}'.format(
-            title, year)
         web_req = requests.get(address)
         if web_req.status_code != 200:
             return 'Fail'
@@ -205,18 +181,20 @@ class TorrentCount():
         for imdb_id, title, year in self.movies_tup:
             time.sleep(1)
 
-            omdb_data = self.omdb_data
-            omdb_data.loc[omdb_data['imdbID'] == imdb_id,
-                          'Kat_Count'] = self.kat_crawl(imdb_id)
-            omdb_data.loc[omdb_data['imdbID'] == imdb_id,
-                          'Pirate_Count'] = self.pirate_crawl(imdb_id)
-            omdb_data.loc[omdb_data['imdbID'] == imdb_id,
-                          'Torrentz_Count'] = self.torrentz_crawl(title, year)
-            omdb_data.loc[omdb_data['imdbID'] == imdb_id,
-                          'Torrentz_Ver_Count'] = \
-                self.torrentz_ver_crawl(title, year)
+            omdb = self.omdb_data
+            omdb.loc[omdb['imdbID'] == imdb_id,
+                     'Kat_Count'] = self.kat_crawl(imdb_id)
+            omdb.loc[omdb['imdbID'] == imdb_id,
+                     'Pirate_Count'] = self.pirate_crawl(imdb_id)
+            omdb.loc[omdb['imdbID'] == imdb_id,
+                     'Torrentz_Count'] = \
+                self.torrentz_crawl('Reg', title, year)
+            omdb.loc[omdb['imdbID'] == imdb_id,
+                     'Torrentz_Ver_Count'] = \
+                self.torrentz_crawl('Ver', title, year)
 
-        self.s3_connect.put_data(omdb_data, KEY_OMDB_TOR, BUCKET)
+        self.omdb_data = omdb
+        self.s3_connect.put_data(omdb, KEY_OMDB_TOR, BUCKET)
 
 
 if __name__ == '__main__':
