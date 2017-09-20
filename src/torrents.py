@@ -7,7 +7,7 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from my_aws import S3
+from src.my_aws import S3
 
 KEY_OMDB = 'OMDB_API.csv'
 KEY_OMDB_TOR = 'OMDB_Torrents.csv'

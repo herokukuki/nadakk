@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from fuzzywuzzy import process
 
-from my_aws import S3
+from src.my_aws import S3
 
 KEY_OMDB_TOR = 'OMDB_Torrents.csv'
 KEY_NUM = 'TheNumbers_budgets.csv'

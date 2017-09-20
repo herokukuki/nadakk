@@ -7,7 +7,7 @@ import json
 import requests
 import pandas as pd
 
-from my_aws import S3
+from src.my_aws import S3
 
 KEY_OMDB = 'OMDB_API.csv'
 KEY_NUM = 'TheNumbers_budgets.csv'

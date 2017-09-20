@@ -5,7 +5,7 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from my_aws import S3
+from src.my_aws import S3
 
 KEY_NUM = 'TheNumbers_budgets.csv'
 BUCKET = 'movie-torrents'
